@@ -227,19 +227,6 @@ $multiline = [
         <?php endif; ?>
 
         <form method="post" enctype="multipart/form-data" id="editorForm">
-
-            <label class="upload">
-                নিউজের ছবি আপলোড
-
-                <input
-                    type="file"
-                    name="newsImage"
-                    id="newsImage"
-                    accept="image/jpeg,image/png,image/webp"
-                >
-            </label>
-
-            
 <label class="upload">
     নিউজের ছবি আপলোড
 

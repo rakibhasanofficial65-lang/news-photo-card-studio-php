@@ -692,3 +692,103 @@ button, input, textarea {
         display: none !important;
     }
 }
+
+
+/* Mobile Responsive Fix */
+* {
+    box-sizing: border-box;
+}
+
+html {
+    width: 100%;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+img,
+video,
+canvas,
+iframe {
+    max-width: 100%;
+}
+
+input,
+select,
+textarea,
+button {
+    max-width: 100%;
+    font: inherit;
+}
+
+@media screen and (max-width: 768px) {
+    .container,
+    .main-container,
+    .editor-container,
+    .preview-container,
+    .editor-layout,
+    .main-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+    }
+
+    .editor-layout,
+    .main-content,
+    .editor-container,
+    .preview-container {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .action-row {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .action-row button,
+    button,
+    input,
+    select,
+    textarea {
+        min-width: 0;
+    }
+
+    input,
+    select,
+    textarea {
+        width: 100%;
+    }
+
+    h1 {
+        font-size: clamp(24px, 7vw, 34px);
+        overflow-wrap: anywhere;
+    }
+
+    .newspaper {
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .action-row button {
+        flex: 1 1 100%;
+        width: 100%;
+    }
+
+    body {
+        font-size: 14px;
+    }
+}

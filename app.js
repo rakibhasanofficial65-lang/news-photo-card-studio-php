@@ -97,13 +97,25 @@ document.addEventListener("DOMContentLoaded", function () {
                     body: formData
                 });
 
-                let data;
+                
+const rawResponse = await response.text();
 
-                try {
-                    data = await response.json();
-                } catch {
-                    throw new Error("সার্ভার থেকে সঠিক উত্তর পাওয়া যায়নি।");
-                }
+let data;
+
+try {
+    data = JSON.parse(rawResponse);
+} catch (error) {
+    console.error("Cartoon API response:", {
+        status: response.status,
+        contentType: response.headers.get("content-type"),
+        body: rawResponse.slice(0, 1000)
+    });
+
+    throw new Error(
+        "API Error: HTTP " + response.status +
+        ". Vercel-এর উত্তর JSON নয়।"
+    );
+}
 
                 if (!response.ok || !data.success || !data.image) {
                     throw new Error(data.error || "কার্টুন তৈরি করা যায়নি।");

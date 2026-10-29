@@ -131,7 +131,6 @@ $curlError = curl_error($ch);
 $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
 $contentType = (string) curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
 
-curl_close($ch);
 
 if ($result === false) {
     error_log('Cartoon API transport error: ' . $curlError);

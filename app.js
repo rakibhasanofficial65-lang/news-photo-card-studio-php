@@ -5,75 +5,143 @@ document.addEventListener("DOMContentLoaded", function () {
     const editorForm = document.getElementById("editorForm");
     const newspaper = document.getElementById("newspaper");
     const imageInput = document.getElementById("newsImage");
+    const previewImage = document.getElementById("previewImage");
+    const photoPlaceholder = document.getElementById("photoPlaceholder");
     const downloadBtn = document.getElementById("downloadBtn");
+    const cartoonBtn = document.getElementById("cartoonBtn");
+    const cartoonStatus = document.getElementById("cartoonStatus");
 
-    // Check that the essential elements exist.
     if (!editorForm || !newspaper) {
-        console.error("Live preview: #editorForm or #newspaper was not found.");
+        console.error("Live preview: required elements not found.");
         return;
     }
 
-    // Update text fields in the preview as the user types.
+    // Live text preview
     editorForm.querySelectorAll("[data-target]").forEach(function (field) {
         function updatePreview() {
             const target = field.dataset.target;
-            const previewElements = newspaper.querySelectorAll(
-                '[data-view="' + target + '"]'
-            );
 
-            previewElements.forEach(function (element) {
+            newspaper.querySelectorAll(
+                '[data-view="' + target + '"]'
+            ).forEach(function (element) {
                 element.textContent = field.value;
             });
         }
 
         field.addEventListener("input", updatePreview);
         field.addEventListener("change", updatePreview);
-
-        // Initialize preview from current field values.
         updatePreview();
     });
 
-const newsImage = document.getElementById('newsImage');
-const previewImage = document.getElementById('previewImage');
-const photoPlaceholder = document.getElementById('photoPlaceholder');
+    // Uploaded image preview
+    if (imageInput && previewImage) {
+        imageInput.addEventListener("change", function () {
+            const file = this.files && this.files[0];
+            if (!file) return;
 
-if (newsImage && previewImage) {
-    newsImage.addEventListener('change', function () {
-        const file = this.files && this.files[0];
+            if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+                alert("JPG, PNG অথবা WebP ছবি নির্বাচন করুন।");
+                this.value = "";
+                return;
+            }
 
-        if (!file) return;
+            const reader = new FileReader();
 
-        if (!file.type.startsWith('image/')) {
-            alert('একটি ছবি নির্বাচন করুন।');
-            return;
-        }
+            reader.onload = function (event) {
+                previewImage.onload = function () {
+                    previewImage.hidden = false;
+                    if (photoPlaceholder) photoPlaceholder.hidden = true;
+                };
 
-        const reader = new FileReader();
-
-        reader.onload = function (event) {
-            previewImage.onload = function () {
-                previewImage.hidden = false;
-
-                if (photoPlaceholder) {
-                    photoPlaceholder.hidden = true;
-                }
+                previewImage.src = event.target.result;
             };
 
-            previewImage.src = event.target.result;
-        };
+            reader.onerror = function () {
+                alert("ছবিটি পড়া যায়নি। আবার চেষ্টা করুন।");
+            };
 
-        reader.onerror = function () {
-            alert('ছবিটি পড়া যায়নি। আবার চেষ্টা করুন।');
-        };
+            reader.readAsDataURL(file);
+        });
+    }
 
-        reader.readAsDataURL(file);
-    });
-}
+    // AI cartoon generation
+    if (cartoonBtn && cartoonStatus && imageInput && previewImage) {
+        cartoonBtn.addEventListener("click", async function () {
+            const file = imageInput.files && imageInput.files[0];
 
+            if (!file) {
+                cartoonStatus.textContent = "প্রথমে একটি ছবি আপলোড করুন।";
+                imageInput.focus();
+                return;
+            }
 
+            if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+                cartoonStatus.textContent = "JPG, PNG অথবা WebP ছবি ব্যবহার করুন।";
+                return;
+            }
 
+            if (file.size > 5 * 1024 * 1024) {
+                cartoonStatus.textContent = "ছবির আকার ৫ MB-এর মধ্যে রাখুন।";
+                return;
+            }
 
-    // Download the newspaper card as a PNG.
+            const formData = new FormData();
+            formData.append("image", file);
+
+            cartoonBtn.disabled = true;
+            cartoonStatus.textContent = "AI কার্টুন তৈরি করছে। অপেক্ষা করুন...";
+
+            try {
+                const response = await fetch("/api/cartoon", {
+                    method: "POST",
+                    body: formData
+                });
+
+                let data;
+
+                try {
+                    data = await response.json();
+                } catch {
+                    throw new Error("সার্ভার থেকে সঠিক উত্তর পাওয়া যায়নি।");
+                }
+
+                if (!response.ok || !data.success || !data.image) {
+                    throw new Error(data.error || "কার্টুন তৈরি করা যায়নি।");
+                }
+
+                // Validate the returned image before replacing the preview.
+                const generatedImage = new Image();
+
+                generatedImage.onload = function () {
+                    previewImage.src = data.image;
+                    previewImage.hidden = false;
+
+                    if (photoPlaceholder) {
+                        photoPlaceholder.hidden = true;
+                    }
+
+                    cartoonStatus.textContent =
+                        "কার্টুন তৈরি হয়েছে! এখন PNG ডাউনলোড করতে পারবেন।";
+                };
+
+                generatedImage.onerror = function () {
+                    cartoonStatus.textContent =
+                        "AI-এর তৈরি ছবিটি খোলা যায়নি। আবার চেষ্টা করুন।";
+                };
+
+                generatedImage.src = data.image;
+
+            } catch (error) {
+                console.error("Cartoon generation failed:", error);
+                cartoonStatus.textContent =
+                    error.message || "সমস্যা হয়েছে। পরে আবার চেষ্টা করুন।";
+            } finally {
+                cartoonBtn.disabled = false;
+            }
+        });
+    }
+
+    // Download newspaper card as PNG
     if (downloadBtn) {
         downloadBtn.addEventListener("click", async function () {
             if (typeof html2canvas === "undefined") {
@@ -105,6 +173,7 @@ if (newsImage && previewImage) {
                 link.download = "news-photo-card.png";
                 link.href = canvas.toDataURL("image/png");
                 link.click();
+
             } catch (error) {
                 console.error("PNG download failed:", error);
                 alert("PNG তৈরি করা যায়নি। Console-এর error পরীক্ষা করুন।");

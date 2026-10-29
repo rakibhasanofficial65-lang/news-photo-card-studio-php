@@ -239,12 +239,36 @@ $multiline = [
                 >
             </label>
 
-            <input
-                type="hidden"
-                name="existingImage"
-                id="existingImage"
-                value="<?= esc($imagePath ? basename($imagePath) : '') ?>"
-            >
+            
+<label class="upload">
+    নিউজের ছবি আপলোড
+
+    <input
+        type="file"
+        name="newsImage"
+        id="newsImage"
+        accept="image/jpeg,image/png,image/webp"
+    >
+</label>
+
+<!-- নতুন AI Cartoon Button -->
+<div class="ai-cartoon-tools">
+    <button type="button" id="cartoonBtn" class="primary wide">
+        🎨 Make Funny Cartoon
+    </button>
+
+    <p id="cartoonStatus" role="status" aria-live="polite">
+        ছবি আপলোড করে কার্টুন তৈরি করুন।
+    </p>
+</div>
+
+<input
+    type="hidden"
+    name="existingImage"
+    id="existingImage"
+    value="<?= esc($imagePath ? basename($imagePath) : '') ?>"
+>
+
 
             <div class="fields">
 
